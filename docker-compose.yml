@@ -9,7 +9,7 @@ services:
     environment:
       DATABASE_URL: mysql://appuser:apppass@mysql:3306/appdb
       JWT_SECRET: ${JWT_SECRET}
-      BASE_URL: https://domainanda.com
+      BASE_URL: https://app.aaubengkel.com
     volumes:
       - ./storage/uploads:/app/storage/uploads
     depends_on:
