@@ -1,7 +1,7 @@
 import { User } from "@/generated/prisma/client";
 import { handleApiError } from "@/lib/errorHandler";
 import api from "@/lib/fetcher";
-import { LoginUserSchema, RegisterUserSchema } from "@/schema/userSchema";
+import { LoginUserSchema, RegisterUserSchema, UpdateUserSchema } from "@/schema/userSchema";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/router";
 import { toast } from "sonner";
@@ -58,6 +58,40 @@ export const useCreateUser = () => {
     },
     onError: () => {
       toast.error("Failed to create role");
+    },
+  });
+};
+
+export const useUpdateUser = (userId: string) => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (data: Partial<z.infer<typeof UpdateUserSchema>>) => {
+      const res = await api.patch(`/users/${userId}`, data);
+      return res.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["users"] });
+      toast.success("User updated successfully");
+    },
+    onError: () => {
+      toast.error("Failed to update user");
+    },
+  });
+};
+
+export const useDeleteUser = (userId: string) => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async () => {
+      const res = await api.delete(`/users/${userId}`);
+      return res.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["users"] });
+      toast.success("User deleted successfully");
+    },
+    onError: () => {
+      toast.error("Failed to delete user");
     },
   });
 };

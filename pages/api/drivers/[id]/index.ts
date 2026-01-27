@@ -23,6 +23,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
       res.status(200).json(success(user));
     } catch (error: any) {
+      console.log("Error updating driver:", error);
       if (error instanceof z.ZodError) {
         return res.status(400).json({
           success: false,

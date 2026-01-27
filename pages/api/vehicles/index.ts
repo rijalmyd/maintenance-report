@@ -2,20 +2,59 @@
 import { fail, success } from "@/lib/apiResponse";
 import { verifyToken } from "@/lib/auth";
 import prisma from "@/lib/prisma";
+import { dueDateToThisYear, getNextGeneratedNumber } from "@/lib/utils";
 import { CreateVehicleSchema } from "@/schema/vehicleSchema";
+import { tr } from "date-fns/locale";
 import { NextApiRequest, NextApiResponse } from "next";
 import z from "zod";
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === "POST") {
-    try {
-      const body = CreateVehicleSchema.parse(req.body);
+    return handleCreateVehicle(req, res);
+  }
 
-      const vehicle = await prisma.vehicle.create({
+  if (req.method === "GET") {
+    try {
+      const drivers = await prisma.vehicle.findMany({
+        include: {
+          asset: true,
+        },
+        orderBy: { createdAt: "desc" },
+      });
+
+      res.status(200).json(success(drivers));
+    } catch (error: any) {
+      res.status(500).json(fail("terjadi kesalahan server", error.message));
+    }
+  }
+}
+
+async function handleCreateVehicle(
+  req: NextApiRequest,
+  res: NextApiResponse
+) {
+  try {
+    const body = CreateVehicleSchema.parse(req.body);
+
+    const vehicle = await prisma.$transaction(async (tx) => {
+      const lastVehicle = await tx.vehicle.findFirst({
+        orderBy: { asset: { asset_code: "desc" } },
+        select: { asset: true },
+      });
+
+      const vehicleNumber = getNextGeneratedNumber(
+        lastVehicle?.asset?.asset_code,
+        {
+          prefix: "TRK-",
+          padLength: 8,
+          maxNumber: 99999999,
+        }
+      );
+      const vehicle = await tx.vehicle.create({
         data: {
           asset: {
             create: {
-              asset_code: body.asset.asset_code,
+              asset_code: vehicleNumber,
               is_active: true,
               asset_type: "VEHICLE",
               name: body.asset.name,
@@ -41,33 +80,57 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         },
       });
 
-      res.status(201).json(success(vehicle));
-    } catch (error: any) {
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({
-          success: false,
-          message: "Validasi gagal",
-          errors: error.flatten().fieldErrors,
+      const remindersData: {
+        asset_id: string;
+        reminder_type: "STNK" | "KIR";
+        due_date: Date;
+        interval_month: number;
+        next_due_date: Date;
+      }[] = [];
+
+      if (vehicle.stnk_due_date) {
+        remindersData.push({
+          asset_id: vehicle.asset.id,
+          reminder_type: "STNK",
+          due_date: dueDateToThisYear(vehicle.stnk_due_date),
+          interval_month: 12,
+          next_due_date: dueDateToThisYear(vehicle.stnk_due_date)
         });
       }
-      console.log(error);
-      res.status(500).json(fail("terjadi kesalahan server"));
-    }
-  }
 
-  if (req.method === "GET") {
-    try {
-      const drivers = await prisma.vehicle.findMany({
-        include: {
-          asset: true,
-        },
-        orderBy: { createdAt: "desc" },
+      if (vehicle.kir_due_date) {
+        remindersData.push({
+          asset_id: vehicle.asset.id,
+          reminder_type: "KIR",
+          due_date: dueDateToThisYear(vehicle.kir_due_date),
+          interval_month: 6,
+          next_due_date: dueDateToThisYear(vehicle.kir_due_date),
+        });
+      }
+
+      if (remindersData.length > 0) {
+        await tx.reminder.createMany({
+          data: remindersData,
+        });
+      }
+
+      return vehicle;
+    });
+
+    return res.status(201).json(success(vehicle));
+  } catch (error: any) {
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({
+        success: false,
+        message: "Validasi gagal",
+        errors: error.flatten().fieldErrors,
       });
-
-      res.status(200).json(success(drivers));
-    } catch (error: any) {
-      res.status(500).json(fail("terjadi kesalahan server", error.message));
     }
+
+    console.error("API error:", error);
+    return res
+      .status(500)
+      .json(fail("Terjadi kesalahan server", error.message));
   }
 }
 

@@ -17,7 +17,7 @@ export default async function handler(
 
         const {
           page = 1,
-          size = 10,
+          size = 1000,
           search = "",
           startDate,
           endDate,
@@ -139,7 +139,6 @@ export default async function handler(
           },
         });
       }
-
       default:
         return res.status(405).json(fail("Method not allowed"));
     }

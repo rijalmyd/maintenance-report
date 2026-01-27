@@ -1,8 +1,7 @@
 import z from "zod";
 
 export const CreateAssetSchema = z.object({
-  // asset
-  asset_code: z.string().min(2, "Kode harus ada"),
+  // asset,
   name: z.string().min(1, "Nama harus ada"),
   brand: z.string().optional(),
   model: z.string().optional(),

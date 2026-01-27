@@ -2,8 +2,7 @@
 import { fail, success } from "@/lib/apiResponse";
 import { verifyToken } from "@/lib/auth";
 import prisma from "@/lib/prisma";
-import { UpdateEquipementSchema } from "@/schema/equipmentSchema";
-
+import { UpdateEquipmentSchema } from "@/schema/equipmentSchema";
 import { NextApiRequest, NextApiResponse } from "next";
 import z from "zod";
 
@@ -31,14 +30,14 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         const chassis = await findById(equipmentId);
         if (!chassis) return res.status(404).json(fail("Equipment not found"));
 
-        const body = UpdateEquipementSchema.parse(req.body);
+        const body = UpdateEquipmentSchema.parse(req.body);
         const updatedChassis = await prisma.equipment.update({
           where: { id: equipmentId },
           data: {
             asset: {
               update: {
                 asset_code: body.asset_code,
-                is_active: true,
+                is_active: body.is_active,
                 asset_type: "EQUIPMENT",
                 name: body.name,
                 brand: body.brand,

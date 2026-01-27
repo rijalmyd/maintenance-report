@@ -1,5 +1,5 @@
 import { Sparepart } from "@/generated/prisma/client";
-import { useGetAllSparepart } from "@/hooks/useSparepart";
+import { useDeleteSparepart, useGetAllSparepart } from "@/hooks/useSparepart";
 import {
   ColumnDef,
   ColumnFiltersState,
@@ -12,8 +12,8 @@ import {
   useReactTable,
   VisibilityState,
 } from "@tanstack/react-table";
-import { ArrowUpDown, ChevronDown, MoreHorizontal } from "lucide-react";
-import React from "react";
+import { ArrowUpDown, ChevronDown, MoreHorizontal, Trash2 } from "lucide-react";
+import React, { use } from "react";
 import { Button } from "../ui/button";
 import { Checkbox } from "../ui/checkbox";
 import {
@@ -34,6 +34,9 @@ import {
   TableHeader,
   TableRow,
 } from "../ui/table";
+import { AlertDialog, AlertDialogTrigger, AlertDialogContent, AlertDialogTitle, AlertDialogDescription, AlertDialogCancel, AlertDialogAction } from "../ui/alert-dialog";
+import { AlertDialogHeader, AlertDialogFooter } from "../ui/alert-dialog";
+import SparepartEditDialog from "./SparepartEditForm";
 
 export const columns: ColumnDef<Sparepart>[] = [
   {
@@ -112,25 +115,11 @@ export const columns: ColumnDef<Sparepart>[] = [
     cell: ({ row }) => {
       const payment = row.original;
       return (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="h-8 w-8 p-0">
-              <span className="sr-only">Open menu</span>
-              <MoreHorizontal />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuLabel>Actions</DropdownMenuLabel>
-            <DropdownMenuItem
-              onClick={() => navigator.clipboard.writeText(payment.id)}
-            >
-              Copy payment ID
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem>View customer</DropdownMenuItem>
-            <DropdownMenuItem>View payment details</DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <div className="flex justify-end gap-2">
+          {/* <ViewVehicle vehicle={vehicle} /> */}
+          <SparepartEditDialog sparepart={payment} />
+          <DeleteSparepart sparepartId={payment.id} />
+        </div>
       );
     },
   },
@@ -164,17 +153,20 @@ const SparepartTable: React.FC = () => {
       columnVisibility,
       rowSelection,
     },
+    initialState: {
+      pagination: { pageSize: 30 },
+    },
   });
   return (
     <div className="w-full">
       <div className="flex items-center py-4">
         <Input
-          placeholder="Filter fullnames..."
+          placeholder="Filter nama..."
           value={
-            (table.getColumn("fullname")?.getFilterValue() as string) ?? ""
+            (table.getColumn("name")?.getFilterValue() as string) ?? ""
           }
           onChange={(event) =>
-            table.getColumn("fullname")?.setFilterValue(event.target.value)
+            table.getColumn("name")?.setFilterValue(event.target.value)
           }
           className="max-w-sm"
         />
@@ -216,9 +208,9 @@ const SparepartTable: React.FC = () => {
                       {header.isPlaceholder
                         ? null
                         : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext()
-                          )}
+                          header.column.columnDef.header,
+                          header.getContext()
+                        )}
                     </TableHead>
                   );
                 })}
@@ -255,11 +247,36 @@ const SparepartTable: React.FC = () => {
           </TableBody>
         </Table>
       </div>
-      <div className="flex items-center justify-end space-x-2 py-4">
+      <div className="flex items-center justify-end space-x-4 py-4">
+        {/* Info selected rows */}
         <div className="text-muted-foreground flex-1 text-sm">
           {table.getFilteredSelectedRowModel().rows.length} of{" "}
           {table.getFilteredRowModel().rows.length} row(s) selected.
         </div>
+        {/* Page size dropdown */}
+        <div className="flex items-center gap-2">
+          <span className="text-sm text-muted-foreground">Rows per page</span>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm">
+                {table.getState().pagination.pageSize}
+                <ChevronDown className="ml-2 h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              {[30, 60, 90, 120].map((pageSize) => (
+                <DropdownMenuItem
+                  key={pageSize}
+                  onClick={() => table.setPageSize(pageSize)}
+                >
+                  {pageSize}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+
+        {/* Pagination buttons */}
         <div className="space-x-2">
           <Button
             variant="outline"
@@ -282,5 +299,47 @@ const SparepartTable: React.FC = () => {
     </div>
   );
 };
+
+const DeleteSparepart = ({ sparepartId }: { sparepartId: string }) => {
+  const [open, setOpen] = React.useState(false);
+  const deleteSparepart = useDeleteSparepart();
+
+  const handleDelete = async () => {
+    try {
+      await deleteSparepart.mutateAsync(sparepartId);
+      setOpen(false);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  return (
+    <AlertDialog>
+      <AlertDialogTrigger asChild>
+        <Button size="icon" variant="destructive">
+          <Trash2 className="h-4 w-4" />
+        </Button>
+      </AlertDialogTrigger>
+
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+          <AlertDialogDescription>
+            This action cannot be undone. This will permanently delete the
+            sparepart.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+
+        <AlertDialogFooter>
+          <AlertDialogCancel>Cancel</AlertDialogCancel>
+          <AlertDialogAction onClick={handleDelete}>
+            Delete
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+  );
+};
+
 
 export default SparepartTable;

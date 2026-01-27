@@ -29,13 +29,49 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       }
 
       case "DELETE": {
-        const maintenence = await findById(maintenenceId);
+        if (!maintenenceId)
+          return res.status(400).json(fail("Invalid maintenence ID"));
+
+        const maintenence = await prisma.maintenence.findUnique({
+          where: { id: maintenenceId },
+          include: {
+            images: true,
+          },
+        });
+
         if (!maintenence)
           return res.status(404).json(fail("Maintenence not found"));
 
-        await prisma.equipment.delete({ where: { id: maintenenceId } });
+        await prisma.$transaction(async (tx) => {
+          // 1️⃣ delete maintenence_sparepart
+          await tx.maintenenceSparepart.deleteMany({
+            where: { maintenence_id: maintenenceId },
+          });
+
+          // 2️⃣ delete maintenence_image
+          await tx.maintenenceImage.deleteMany({
+            where: { maintenence_id: maintenenceId },
+          });
+
+          // 3️⃣ delete actual image records (THIS IS WHAT YOU MISSED)
+          await tx.image.deleteMany({
+            where: {
+              id: {
+                in: maintenence.images.map((img) => img.image_id),
+              },
+            },
+          });
+
+          // 4️⃣ finally delete maintenence
+          await tx.maintenence.delete({
+            where: { id: maintenenceId },
+          });
+        });
+
         return res.status(200).json(success(null));
       }
+
+
 
       // case "PATCH": {
       //   const maintenence = await findById(maintenenceId);

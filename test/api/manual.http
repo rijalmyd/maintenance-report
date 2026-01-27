@@ -1,5 +1,5 @@
 # @baseUrl = http://103.127.133.201:3000
-@baseUrl = http://localhost:3000
+@baseUrl = http://103.150.227.144:3000
 
 @token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6Ijk2MDkxMjI3LTkwODAtNDdhYi1hYzdmLTZhODM4Mzg5ODVjNyIsInVzZXJuYW1lIjoicmlmYWkiLCJpYXQiOjE3NjQxNDA0MTUsImV4cCI6MTc2NDE0MjIxNX0.itOcixzle2i9dTIubVMP9ALbl_9kI73W3wv7Xp6U_HU
 @driverID=3b02ea5c-3cec-4b12-a0ca-ca139b1b682f
@@ -16,9 +16,9 @@ POST {{baseUrl}}/api/users/register
 Content-Type: application/json
 
 {
-  "fullname": "Ahmad Rifai",
-  "username": "rifaii",
-  "password": "rahasia",
+  "fullname": "Admin",
+  "username": "admin",
+  "password": "@Rahasia123",
   "role": "ADMIN"
 }
 

@@ -21,11 +21,30 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       }
 
       case "DELETE": {
-        const sparepart = await findById(sparepartId);
-        if (!sparepart)
-          return res.status(404).json(fail("Sparepart not found"));
+        const sparepart = await prisma.sparepart.findUnique({
+          where: { id: sparepartId },
+        });
 
-        await prisma.sparepart.delete({ where: { id: sparepartId } });
+        if (!sparepart) {
+          return res.status(404).json(fail("Sparepart not found"));
+        }
+
+        await prisma.$transaction([
+          // ⬇️ DELETE CHILD TABLES FIRST
+          prisma.maintenenceSparepart.deleteMany({
+            where: {
+              sparepart_id: sparepartId,
+            },
+          }),
+
+          // ⬇️ DELETE SPAREPART
+          prisma.sparepart.delete({
+            where: {
+              id: sparepartId,
+            },
+          }),
+        ]);
+
         return res.status(200).json(success(null));
       }
 

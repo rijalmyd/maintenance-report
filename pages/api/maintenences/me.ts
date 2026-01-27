@@ -10,8 +10,9 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
     const authHeader = req.headers.authorization;
 
-    if (!authHeader || !authHeader.startsWith("Bearer "))
-      return res.status(401).json(fail("unathorized"));
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return res.status(401).json(fail("unauthorized"));
+    }
 
     const token = authHeader.split(" ")[1];
 
@@ -25,40 +26,45 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     const skip = (Number(page) - 1) * Number(size);
     const take = Number(size);
 
-    const where: Prisma.MaintenenceWhereInput = search
-      ? {
-          AND: [{ user_id: decoded.id }],
-          OR: [
-            {
-              record_number: {
-                contains: search as string,
+    const where: Prisma.MaintenenceWhereInput = {
+      user_id: decoded.id,
+      ...(search
+        ? {
+            OR: [
+              {
+                record_number: {
+                  contains: search as string,
+                },
               },
-            },
-            {
-              complaint: {
-                contains: search as string,
+              {
+                complaint: {
+                  contains: search as string,
+                },
               },
-            },
-            {
-              repair_notes: {
-                contains: search as string,
+              {
+                repair_notes: {
+                  contains: search as string,
+                },
               },
-            },
-            {
-              asset: {
-                name: { contains: search as string },
+              {
+                asset: {
+                  name: {
+                    contains: search as string,
+                  },
+                },
               },
-            },
-            {
-              driver: {
-                name: { contains: search as string },
+              {
+                driver: {
+                  name: {
+                    contains: search as string,
+                  },
+                },
               },
-            },
-          ],
-        }
-      : {};
+            ],
+          }
+        : {}),
+    };
 
-    // Hitung total untuk pagination
     const total = await prisma.maintenence.count({ where });
 
     const maintenences = await prisma.maintenence.findMany({
@@ -86,13 +92,14 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         },
         user: true,
       },
-      orderBy: { createdAt: "desc" },
+      orderBy: {
+        createdAt: "desc",
+      },
     });
 
-    // transform data agar images tidak berisi pivot
     const formatted = maintenences.map((m) => ({
       ...m,
-      images: m.images?.map((pivot) => pivot.image), // ambil langsung objek image-nya
+      images: m.images?.map((pivot) => pivot.image),
       // spareparts: m.spareparts?.map((pivot) => pivot.sparepart),
     }));
 
@@ -108,7 +115,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       },
     });
   } catch (error: any) {
-    res.status(401).json(fail("invalid or expired token", error));
+    return res.status(401).json(fail("invalid or expired token", error));
   }
 }
 

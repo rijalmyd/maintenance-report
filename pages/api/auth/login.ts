@@ -19,14 +19,24 @@ export default async function handler(
     const user = await prisma.user.findUnique({
       where: { username: body.username },
     });
+    
+    if (!user) {
+      return res.status(401).json(fail("Invalid credentials"));
+    }
 
-    if (!user) return res.status(401).json(fail("invalid credential"));
+    if (user.deletedAt) {
+      return res.status(403).json(fail("User has been deleted"));
+    }
+
+    if (!user.is_active) {
+      return res.status(403).json(fail("User is not active"));
+    }
 
     const valid = await bcrypt.compare(body.password, user.password);
     if (!valid) return res.status(401).json(fail("invalid credential"));
 
     const jwtOptions: jwt.SignOptions =
-      body.role === "ADMIN" ? { expiresIn: "30m" } : {};
+      body.role === "ADMIN" ? { expiresIn: "60m" } : {};
 
     const token = jwt.sign(
       { id: user.id, username: user.username },

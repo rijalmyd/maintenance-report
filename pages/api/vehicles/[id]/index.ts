@@ -2,6 +2,7 @@
 import { fail, success } from "@/lib/apiResponse";
 import { verifyToken } from "@/lib/auth";
 import prisma from "@/lib/prisma";
+import { dueDateToThisYear } from "@/lib/utils";
 import { UpdateVehicleSchema } from "@/schema/vehicleSchema";
 import { NextApiRequest, NextApiResponse } from "next";
 import z from "zod";
@@ -28,7 +29,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     try {
       const body = UpdateVehicleSchema.parse(req.body);
 
-      const user = await prisma.vehicle.update({
+      const vehicle = await prisma.vehicle.update({
         where: {
           id: idStr,
         },
@@ -36,7 +37,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
           asset: {
             update: {
               asset_code: body.asset_code,
-              is_active: true,
+              is_active: body.is_active,
               asset_type: "VEHICLE",
               name: body.name,
               brand: body.brand,
@@ -61,7 +62,84 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         },
       });
 
-      res.status(200).json(success(user));
+      const assetId = vehicle.asset_id;
+
+      // jika tidak ada, buat reminder baru dan jika ada, buat ulang dengan tanggal yang baru
+      await prisma.reminder.deleteMany({
+        where: { asset_id: assetId },
+      });
+
+      const remindersData: {
+        asset_id: string;
+        reminder_type: "STNK" | "KIR";
+        due_date: Date;
+        interval_month: number;
+        next_due_date: Date;
+      }[] = [];
+
+      if (vehicle.stnk_due_date) {
+        remindersData.push({
+          asset_id: vehicle.asset.id,
+          reminder_type: "STNK",
+          due_date: dueDateToThisYear(vehicle.stnk_due_date),
+          interval_month: 12,
+          next_due_date: dueDateToThisYear(vehicle.stnk_due_date)
+        });
+      }
+
+      if (vehicle.kir_due_date) {
+        remindersData.push({
+          asset_id: vehicle.asset.id,
+          reminder_type: "KIR",
+          due_date: dueDateToThisYear(vehicle.kir_due_date),
+          interval_month: 6,
+          next_due_date: dueDateToThisYear(vehicle.kir_due_date),
+        });
+      }
+
+      if (remindersData.length > 0) {
+        await prisma.reminder.createMany({
+          data: remindersData,
+        });
+      }
+
+      // if (existingReminders.length === 0) {
+      //   const remindersData: {
+      //     asset_id: string;
+      //     reminder_type: "STNK" | "KIR";
+      //     due_date: Date;
+      //     interval_month: number;
+      //     next_due_date: Date;
+      //   }[] = [];
+
+      //   if (body.stnk_due_date) {
+      //     remindersData.push({
+      //       asset_id: assetId,
+      //       reminder_type: "STNK",
+      //       due_date: body.stnk_due_date,
+      //       interval_month: 12,
+      //       next_due_date: body.stnk_due_date,
+      //     });
+      //   }
+
+      //   if (body.kir_due_date) {
+      //     remindersData.push({
+      //       asset_id: assetId,
+      //       reminder_type: "KIR",
+      //       due_date: body.kir_due_date,
+      //       interval_month: 6,
+      //       next_due_date: body.kir_due_date,
+      //     });
+      //   }
+
+      //   if (remindersData.length > 0) {
+      //     await prisma.reminder.createMany({
+      //       data: remindersData,
+      //     });
+      //   }
+      // }
+
+      res.status(200).json(success(vehicle));
     } catch (error: any) {
       if (error instanceof z.ZodError) {
         return res.status(400).json({
@@ -76,13 +154,35 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
   }
   if (req.method === "DELETE") {
     try {
-      await prisma.vehicle.delete({
+      // Ambil asset_id vehicle
+      const vehicle = await prisma.vehicle.findUnique({
         where: { id: idStr },
+        select: { asset_id: true },
+      });
+
+      if (!vehicle) return res.status(404).json(fail("Vehicle not found"));
+
+      await prisma.$transaction(async (tx) => {
+        // 1️⃣ Hapus reminder terkait asset
+        await tx.reminder.deleteMany({
+          where: { asset_id: vehicle.asset_id },
+        });
+
+        // 2️⃣ Hapus vehicle
+        await tx.vehicle.delete({
+          where: { id: idStr },
+        });
+
+        // 3️⃣ Hapus asset
+        await tx.asset.delete({
+          where: { id: vehicle.asset_id },
+        });
       });
 
       res.status(200).json(success(null));
     } catch (error: any) {
-      res.status(500).json(fail("terjadi kesalahan server", error.message));
+      console.error(error);
+      res.status(500).json(fail("Terjadi kesalahan server", error.message));
     }
   }
 }

@@ -26,10 +26,11 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
 import { useCreateChassis } from "@/hooks/useChassis";
+import { formatDate, parseDate } from "@/lib/formatDate";
 import { CreateAssetSchema } from "@/schema/assetSchema";
 import { CreateChessisSchema } from "@/schema/chassisSchema";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { ChevronDownIcon, Loader2Icon } from "lucide-react";
+import { CalendarIcon, ChevronDownIcon, Loader2Icon } from "lucide-react";
 import { Resolver, useForm } from "react-hook-form";
 import z from "zod";
 
@@ -38,11 +39,13 @@ interface Props {
   onPrevius: () => void;
 }
 
-const chassisType: string[] = ["FLATBED", "RANGKA"];
+const chassisType: string[] = ["FLATBED", "RANGKA", "DECK_KAYU"];
 const categoryChassis: string[] = [
   "20 feet",
-  "40 feet Lowbed",
+  "40 feet",
+  "Lowbed",
   "Dolly",
+  "Sliding",
   "Lainya",
 ];
 
@@ -55,7 +58,7 @@ const ChassisForm: React.FC<Props> = ({ asset, onPrevius }) => {
       asset: asset ?? undefined,
       axle_count: undefined,
       chassis_category: "",
-      chassis_number: "",
+      chassis_number: asset?.name ?? undefined,
       chassis_type: undefined,
       kir_due_date: undefined,
       no_kir: "",
@@ -76,19 +79,20 @@ const ChassisForm: React.FC<Props> = ({ asset, onPrevius }) => {
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
         <Separator className="mb-4" />
 
-        <FormField
+        {/* <div className="grid grid-cols-2 gap-4">  
+          <FormField
           control={form.control}
           name="chassis_number"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Nomer Chassis</FormLabel>
+              <FormLabel>Nomor Chassis</FormLabel>
               <FormControl>
                 <Input placeholder="contoh: AST-XXX" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
-        />
+        /> */}
 
         <FormField
           control={form.control}
@@ -96,6 +100,7 @@ const ChassisForm: React.FC<Props> = ({ asset, onPrevius }) => {
           render={({ field }) => (
             <FormItem>
               <FormLabel>Jumlah Axel</FormLabel>
+              
               <FormControl>
                 <Input
                   type="number"
@@ -105,7 +110,7 @@ const ChassisForm: React.FC<Props> = ({ asset, onPrevius }) => {
                       e.target.value === "" ? undefined : Number(e.target.value)
                     )
                   }
-                  placeholder="contoh: AST-XXX"
+                  placeholder="contoh: 2"
                 />
               </FormControl>
               <FormMessage />
@@ -113,6 +118,7 @@ const ChassisForm: React.FC<Props> = ({ asset, onPrevius }) => {
           )}
         />
 
+        <div className="grid grid-cols-2 gap-4">  
         <FormField
           control={form.control}
           name="chassis_type"
@@ -147,6 +153,7 @@ const ChassisForm: React.FC<Props> = ({ asset, onPrevius }) => {
           render={({ field }) => (
             <FormItem>
               <FormLabel>Jenis Chassis</FormLabel>
+
               <FormControl>
                 <Select onValueChange={field.onChange} value={field.value}>
                   <SelectTrigger className="w-full">
@@ -168,6 +175,55 @@ const ChassisForm: React.FC<Props> = ({ asset, onPrevius }) => {
             </FormItem>
           )}
         />
+        </div>
+
+
+        <div className="grid grid-cols-2 gap-4">  
+          <FormField
+          control={form.control}
+          name="owner"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Pemilik</FormLabel>
+              <FormControl>
+                <Input placeholder="contoh: PT ADITYA ANDHIKA UTAMA" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+         />
+
+         <FormField
+          control={form.control}
+          name="color"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Warna</FormLabel>
+              <FormControl>
+                <Input placeholder="contoh: HITAM" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+         />
+        </div>
+
+        <FormField
+          control={form.control}
+          name="address"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Alamat</FormLabel>
+              <FormControl>
+                <Input 
+                  placeholder="contoh: JL RAYA CAKUNG CILING KM 2 KAV C792, JAKUT" {...field} 
+                  multiple
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
 
         <div className="grid grid-cols-2 gap-4">
           <FormField
@@ -177,7 +233,7 @@ const ChassisForm: React.FC<Props> = ({ asset, onPrevius }) => {
               <FormItem>
                 <FormLabel>Nomor KIR</FormLabel>
                 <FormControl>
-                  <Input placeholder="contoh: AST-XXX" {...field} />
+                  <Input placeholder="contoh: JKT.1234" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -188,37 +244,46 @@ const ChassisForm: React.FC<Props> = ({ asset, onPrevius }) => {
             control={form.control}
             name="kir_due_date"
             render={({ field }) => (
-              <FormItem>
-                <FormLabel>KIR Jatuh tempo</FormLabel>
-                <FormControl>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button
-                        variant="outline"
-                        id="date"
-                        className="w-full justify-between font-normal"
-                      >
-                        {field.value
-                          ? field.value.toLocaleDateString()
-                          : "Select date"}
-                        <ChevronDownIcon />
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent
-                      className="w-auto overflow-hidden p-0"
-                      align="start"
-                    >
-                      <Calendar
-                        mode="single"
-                        selected={field.value ?? undefined}
-                        onSelect={(date) => field.onChange(date ?? undefined)}
-                        captionLayout="dropdown"
-                      />
-                    </PopoverContent>
-                  </Popover>
-                </FormControl>
-                <FormMessage />
-              </FormItem>
+               <FormItem>
+                    <FormLabel>KIR Jatuh tempo</FormLabel>
+
+                    <div className="flex gap-2">
+                      {/* INPUT MANUAL */}
+                      <FormControl>
+                        <Input
+                          placeholder="DD/MM/YYYY"
+                          value={formatDate(field.value)}
+                          disabled
+                          onChange={(e) => {
+                            const parsed = parseDate(e.target.value);
+                            field.onChange(parsed);
+                          }}
+                        />
+                      </FormControl>
+
+                      {/* DATE PICKER */}
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button variant="outline" size="icon">
+                            <CalendarIcon className="h-4 w-4" />
+                          </Button>
+                        </PopoverTrigger>
+
+                        <PopoverContent className="w-auto p-0" align="start">
+                          <Calendar
+                            mode="single"
+                            selected={field.value}
+                            onSelect={(date) => field.onChange(date ?? undefined)}
+                            captionLayout="dropdown"   // 🔥 bulan & tahun dropdown
+                            fromYear={1990}
+                            toYear={2100}
+                          />
+                        </PopoverContent>
+                      </Popover>
+                    </div>
+
+                    <FormMessage />
+                  </FormItem>
             )}
           />
         </div>

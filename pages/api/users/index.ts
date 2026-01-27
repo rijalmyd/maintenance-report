@@ -8,6 +8,7 @@ export default async function handler(
 ) {
   if (req.method === "GET") {
     const users = await prisma.user.findMany({
+      where: { deletedAt: null },
       orderBy: { createdAt: "desc" },
     });
     res.status(200).json(success(users));

@@ -1,5 +1,6 @@
 import z from "zod";
 import { CreateAssetSchema } from "./assetSchema";
+import { is } from "date-fns/locale";
 
 export const CreateEquipementSchema = z.object({
   // asset
@@ -12,7 +13,7 @@ export const CreateEquipementSchema = z.object({
   condition: z.string(),
 });
 
-export const UpdateEquipementSchema = z.object({
+export const UpdateEquipmentSchema = z.object({
   // asset
   asset_code: z.string(),
   name: z.string(),
@@ -28,10 +29,15 @@ export const UpdateEquipementSchema = z.object({
       z.date()
     )
     .optional(),
+  is_active: z.boolean().optional(),
   purchase_price: z.number().optional(),
   // vehicle
   equipment_code: z.string(),
   equipment_type: z.string(),
   specification: z.string(),
   condition: z.string(),
+});
+
+export const DeleteEquipmentBulkSchema = z.object({
+  ids: z.array(z.uuid()),
 });

@@ -1,9 +1,10 @@
 import { useCreateDriver } from "@/hooks/useDriver";
 import { CreateDriverSchema } from "@/schema/driverSchema";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Loader2Icon } from "lucide-react";
-import { useForm } from "react-hook-form";
-import z from "zod";
+import { CalendarIcon, ChevronDownIcon, Loader2Icon } from "lucide-react";
+import { Calendar } from "../ui/calendar";
+import { Resolver, useForm } from "react-hook-form";
+import z, { unknown } from "zod";
 import { Button } from "../ui/button";
 import { Field, FieldGroup, FieldSet } from "../ui/field";
 import {
@@ -16,15 +17,19 @@ import {
 } from "../ui/form";
 import { Input } from "../ui/input";
 import { Textarea } from "../ui/textarea";
+import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
+import { formatDate, parseDate } from "@/lib/formatDate";
 
 const DriverForm: React.FC = () => {
   const form = useForm<z.infer<typeof CreateDriverSchema>>({
-    resolver: zodResolver(CreateDriverSchema),
+    resolver: zodResolver(CreateDriverSchema) as Resolver<
+          z.infer<typeof CreateDriverSchema>
+      >,
     defaultValues: {
-      driver_number: "",
       name: "",
       phone: "",
       notes: "",
+      sim_due_date: undefined,
     },
   });
 
@@ -40,19 +45,6 @@ const DriverForm: React.FC = () => {
       <form onSubmit={form.handleSubmit(onSubmit)}>
         <FieldGroup>
           <FieldSet>
-            <FormField
-              control={form.control}
-              name="driver_number"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Driver Number</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Driver Number" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
             <FormField
               control={form.control}
               name="name"
@@ -79,6 +71,53 @@ const DriverForm: React.FC = () => {
                 </FormItem>
               )}
             />
+
+              <FormField
+                control={form.control}
+                name="sim_due_date"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Tanggal Kadaluarsa SIM</FormLabel>
+
+                    <div className="flex gap-2">
+                      {/* INPUT MANUAL */}
+                      <FormControl>
+                        <Input
+                          placeholder="DD/MM/YYYY"
+                          value={formatDate(field.value)}
+                          onChange={(e) => {
+                            const parsed = parseDate(e.target.value);
+                            field.onChange(parsed);
+                          }}
+                        />
+                      </FormControl>
+
+                      {/* DATE PICKER */}
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button variant="outline" size="icon">
+                            <CalendarIcon className="h-4 w-4" />
+                          </Button>
+                        </PopoverTrigger>
+
+                        <PopoverContent className="w-auto p-0" align="start">
+                          <Calendar
+                            mode="single"
+                            selected={field.value}
+                            onSelect={(date) => field.onChange(date ?? undefined)}
+                            captionLayout="dropdown"   // 🔥 bulan & tahun dropdown
+                            fromYear={1990}
+                            toYear={2100}
+                          />
+                        </PopoverContent>
+                      </Popover>
+                    </div>
+
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
 
             <FormField
               control={form.control}

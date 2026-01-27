@@ -70,20 +70,6 @@ const EquipmentForm: React.FC<Props> = ({ asset, onPrevius }) => {
 
         <FormField
           control={form.control}
-          name="equipment_type"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Nomer Chassis</FormLabel>
-              <FormControl>
-                <Input placeholder="contoh: AST-XXX" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
           name="condition"
           render={({ field }) => (
             <FormItem>
@@ -95,7 +81,7 @@ const EquipmentForm: React.FC<Props> = ({ asset, onPrevius }) => {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectGroup>
-                      <SelectLabel>Tipe Chassis</SelectLabel>
+                      <SelectLabel>Kondisi</SelectLabel>
                       {condition.map((con, index) => (
                         <SelectItem key={index} value={con}>
                           {con}
@@ -112,18 +98,18 @@ const EquipmentForm: React.FC<Props> = ({ asset, onPrevius }) => {
 
         <FormField
           control={form.control}
-          name="condition"
+          name="equipment_type"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Kondisi Aset</FormLabel>
+              <FormLabel>Jenis Equipment</FormLabel>
               <FormControl>
                 <Select onValueChange={field.onChange} value={field.value}>
                   <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Select a asset condition" />
+                    <SelectValue placeholder="Select equipment type" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectGroup>
-                      <SelectLabel>Tipe Chassis</SelectLabel>
+                      <SelectLabel>Tipe Equipment</SelectLabel>
                       {equpmentType.map((type, index) => (
                         <SelectItem key={index} value={type}>
                           {type}

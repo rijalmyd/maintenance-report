@@ -25,3 +25,19 @@ export const formatDateID = (date: string | Date | null) => {
 
   return `${dd} ${monthName} ${yyyy}`;
 };
+
+export const formatDate = (date?: Date) => {
+  if (!date) return "";
+  return new Date(date).toLocaleDateString("id-ID"); // dd/MM/yyyy
+};
+
+export const parseDate = (value: string) => {
+  const parts = value.split("/");
+  if (parts.length !== 3) return undefined;
+
+  const [day, month, year] = parts.map(Number);
+  if (!day || !month || !year) return undefined;
+
+  const date = new Date(year, month - 1, day);
+  return isNaN(date.getTime()) ? undefined : date;
+};

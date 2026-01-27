@@ -12,3 +12,10 @@ export const LoginUserSchema = z.object({
   password: z.string(),
   role: z.enum(["ADMIN", "USER"]),
 });
+
+export const UpdateUserSchema = z.object({
+  fullname: z.string().min(2, "fullname minimal 2 karakter"),
+  username: z.string(),
+  role: z.enum(["ADMIN", "USER"]),
+  is_active: z.boolean(),
+}); 
