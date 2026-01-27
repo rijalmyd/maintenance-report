@@ -2,15 +2,15 @@
 
 import React, { useState, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { 
-  Dialog, 
-  DialogContent, 
-  DialogHeader, 
-  DialogTitle, 
-  DialogDescription 
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription
 } from "@/components/ui/dialog";
-import { 
-  Search, History, Download, Car, Truck, Wrench, ArrowRight, Loader2 
+import {
+  Search, History, Download, Car, Truck, Wrench, ArrowRight, Loader2
 } from "lucide-react";
 import dayjs from "dayjs";
 import { useGetAllMaintenence, useGetMaintenenceByAssetId } from "@/hooks/useMaintenences";
@@ -35,7 +35,7 @@ interface Asset {
 const AssetHistoryCard = () => {
   const [assetType, setAssetType] = useState<AssetType>("VEHICLE");
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedAsset, setSelectedAsset] = useState<{id: string, name: string} | null>(null);
+  const [selectedAsset, setSelectedAsset] = useState<{ id: string, name: string } | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   // 1. Fetch List Aset (Hanya metadata aset)
@@ -65,11 +65,11 @@ const AssetHistoryCard = () => {
    * - Ada ID aset yang terpilih (selectedAsset.id)
    */
   const { data: historyData, isLoading: isHistoryLoading } = useGetMaintenenceByAssetId(
-    selectedAsset?.id ?? "", 
-    { 
-      enabled: isModalOpen && !!selectedAsset?.id 
+    selectedAsset?.id ?? "",
+    {
+      enabled: isModalOpen && !!selectedAsset?.id
     }
-  );
+  ) as { data: any[], isLoading: boolean };
 
   const handleOpenHistory = (asset: Asset) => {
     setSelectedAsset({ id: asset.id, name: asset.name });
@@ -100,9 +100,8 @@ const AssetHistoryCard = () => {
               <button
                 key={t}
                 onClick={() => setAssetType(t)}
-                className={`flex-1 text-[10px] font-bold py-1.5 rounded transition-all ${
-                  assetType === t ? "bg-white shadow-sm text-blue-600" : "text-gray-500"
-                }`}
+                className={`flex-1 text-[10px] font-bold py-1.5 rounded transition-all ${assetType === t ? "bg-white shadow-sm text-blue-600" : "text-gray-500"
+                  }`}
               >
                 {t}
               </button>
