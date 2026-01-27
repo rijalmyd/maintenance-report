@@ -9,7 +9,8 @@ services:
     environment:
       DATABASE_URL: mysql://appuser:apppass@mysql:3306/appdb
       JWT_SECRET: ${JWT_SECRET}
-      BASE_URL: https://app.aaubengkel.com
+      # Path chrome di dalam container
+      PUPPETEER_EXECUTABLE_PATH: /usr/bin/google-chrome-stable 
     volumes:
       - ./storage/uploads:/app/storage/uploads
     depends_on:
@@ -26,6 +27,7 @@ services:
       MYSQL_DATABASE: appdb
       MYSQL_USER: appuser
       MYSQL_PASSWORD: apppass
+    # Tetap buka 3307 jika Anda ingin akses database dari luar via DBeaver/Navicat
     ports:
       - "3307:3306"
     volumes:

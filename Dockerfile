@@ -1,33 +1,42 @@
-FROM node:18-alpine AS base
+FROM node:20-bullseye-slim
 
-# 1. Install dependencies
-FROM base AS deps
-RUN apk add --no-cache libc6-compat
 WORKDIR /app
-COPY package.json package-lock.json ./
-RUN npm ci
 
-# 2. Rebuild the source code
-FROM base AS builder
-WORKDIR /app
-COPY --from=deps /app/node_modules ./node_modules
+# 1. Install Dependencies Sistem & Google Chrome untuk Puppeteer
+RUN apt-get update && apt-get install -y \
+    curl \
+    gnupg \
+    ca-certificates \
+    --no-install-recommends \
+    && curl -fsSL https://dl.google.com/linux/linux_signing_key.pub | gpg --dearmor -o /usr/share/keyrings/google-linux-keyring.gpg \
+    && echo "deb [arch=amd64 signed-by=/usr/share/keyrings/google-linux-keyring.gpg] http://dl.google.com/linux/chrome/deb/ stable main" \
+       > /etc/apt/sources.list.d/google-chrome.list \
+    && apt-get update \
+    && apt-get install -y google-chrome-stable --no-install-recommends \
+    && rm -rf /var/lib/apt/lists/*
+
+# 2. Environment Variables
+ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
+ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/google-chrome-stable
+ENV NODE_ENV=production
+
+# 3. Copy files & Install dependencies
+COPY package*.json ./
+RUN npm install --frozen-lockfile
+
+# 4. Copy seluruh kode
 COPY . .
-ENV NEXT_TELEMETRY_DISABLED 1
+
+# 5. Prisma Generate (jika pakai Prisma)
+RUN npx prisma generate
+
+# 6. Build Next.js
 RUN npm run build
 
-# 3. Production image
-FROM base AS runner
-WORKDIR /app
-ENV NODE_ENV production
-ENV NEXT_TELEMETRY_DISABLED 1
-
-COPY --from=builder /app/public ./public
-COPY --from=builder /app/.next/standalone ./
-COPY --from=builder /app/.next/static ./.next/static
-
 EXPOSE 3000
-ENV PORT 3000
-CMD ["node", "server.js"]
+
+# 7. Start App
+CMD ["npm", "start"]
 
 # # Base image
 # FROM node:22-bullseye
