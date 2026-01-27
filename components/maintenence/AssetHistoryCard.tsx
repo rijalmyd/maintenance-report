@@ -171,7 +171,7 @@ const AssetHistoryCard = () => {
             </DialogDescription>
           </DialogHeader>
 
-          {/* <div className="mt-2 space-y-3 max-h-[50vh] overflow-y-auto pr-2">
+          <div className="mt-2 space-y-3 max-h-[50vh] overflow-y-auto pr-2">
             {isHistoryLoading ? (
               <div className="flex flex-col items-center justify-center py-12 gap-2">
                 <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
@@ -205,7 +205,7 @@ const AssetHistoryCard = () => {
                 Belum ada catatan perbaikan untuk unit ini.
               </div>
             )}
-          </div> */}
+          </div>
         </DialogContent>
       </Dialog>
     </>
