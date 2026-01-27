@@ -21,7 +21,7 @@ RUN npm install
 COPY --chown=pptruser:pptruser . .
 
 # 7. Build & Generate
-RUN npx prisma generate
+RUN DATABASE_URL="mysql://root:root@localhost:3306/db" npx prisma generate
 RUN npm run build
 
 EXPOSE 3000
