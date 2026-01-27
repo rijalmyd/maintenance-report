@@ -22,6 +22,7 @@ import {
   Wrench,
   Clock,
   AlertCircle,
+  CalendarDays,
 } from "lucide-react";
 import dayjs from "dayjs";
 import { Reminder } from "@/schema/reminderSchema";
@@ -115,7 +116,7 @@ const DashboardPage: React.FC = () => {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
         {[
           { label: "Perbaikan Hari Ini", val: summary?.total_today_maintenances, color: "blue", icon: TrendingUp },
-          { label: "Perbaikan Bulan Ini", val: summary?.total_this_month_maintenances, color: "orange", icon: ShoppingCart },
+          { label: "Perbaikan Bulan Ini", val: summary?.total_this_month_maintenances, color: "orange", icon: CalendarDays },
           { label: "Active Users", val: summary?.total_active_users, color: "green", icon: Users },
           { label: "Total Sparepart", val: summary?.total_spareparts, color: "purple", icon: Package },
           { label: "Reminder Aktif", val: filteredReminders.length, color: "red", icon: Bell },

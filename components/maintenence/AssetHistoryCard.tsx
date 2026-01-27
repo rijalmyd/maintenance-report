@@ -191,13 +191,6 @@ const AssetHistoryCard = () => {
                   </div>
 
                   <DownloadMaintenancePDF maintenanceId={log.id} />
-                  <button 
-                    className="flex items-center gap-1.5 px-3 py-1.5 bg-white border shadow-sm rounded-md text-xs font-medium hover:bg-blue-600 hover:text-white transition-all"
-                    onClick={() => window.open(`/api/reports/maintenance/${log.id}`, '_blank')}
-                  >
-                    <Download className="w-3 h-3" />
-                    Report
-                  </button>
                 </div>
               ))
             ) : (
