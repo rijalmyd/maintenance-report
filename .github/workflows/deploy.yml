@@ -18,16 +18,25 @@ jobs:
           username: ${{ secrets.USERNAME }}
           key: ${{ secrets.SSH_KEY }}
           script: |
+            # Masuk ke direktori
             cd /var/www/my-app
-            # Buat folder upload jika belum ada agar docker tidak buat folder sebagai root
-            mkdir -p storage/uploads
+            
+            # 1. Perbaikan Izin (Solusi Permission Denied & Dubious Ownership)
+            sudo chown -R $USER:$USER .
+            git config --global --add safe.directory /var/www/my-app
+            
+            # 2. Update Source Code
             git pull origin main
-            # Inject secret environment jika diperlukan
+            
+            # 3. Setup Folder & Environment
+            mkdir -p storage/uploads
             echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" > .env
-            docker-compose up -d --build
-            # Bersihkan image lama yang tidak terpakai
-            docker image prune -f
-
+            
+            # 4. Jalankan Docker (Menggunakan Docker Compose V2)
+            sudo docker compose up -d --build
+            
+            # 5. Cleanup
+            sudo docker image prune -f
 # name: CI CD Next.js Docker
 
 # on:
