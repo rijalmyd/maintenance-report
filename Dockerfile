@@ -1,53 +1,45 @@
-# Base image
-FROM node:22-bullseye
+FROM node:18-alpine AS base
 
-# Set working directory
+# 1. Install dependencies
+FROM base AS deps
+RUN apk add --no-cache libc6-compat
 WORKDIR /app
+COPY package.json package-lock.json ./
+RUN npm ci
 
-# Environment variable
-# Supaya Puppeteer tidak download Chromium sendiri
-ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
-
-# Install system dependencies + Google Chrome
-RUN apt-get update && apt-get install -y \
-    curl \
-    gnupg \
-    ca-certificates \
-    --no-install-recommends \
-  && curl -fsSL https://dl.google.com/linux/linux_signing_key.pub | gpg --dearmor -o /usr/share/keyrings/google-linux-keyring.gpg \
-  && echo "deb [arch=amd64 signed-by=/usr/share/keyrings/google-linux-keyring.gpg] http://dl.google.com/linux/chrome/deb/ stable main" \
-     > /etc/apt/sources.list.d/google-chrome.list \
-  && apt-get update \
-  && apt-get install -y google-chrome-stable --no-install-recommends \
-  && rm -rf /var/lib/apt/lists/*
-
-# Copy dependency files
-COPY package*.json ./
-
-# Install Node.js dependencies
-RUN npm install
-
-# Copy all source files
+# 2. Rebuild the source code
+FROM base AS builder
+WORKDIR /app
+COPY --from=deps /app/node_modules ./node_modules
 COPY . .
+ENV NEXT_TELEMETRY_DISABLED 1
+RUN npm run build
 
-# Expose application port
+# 3. Production image
+FROM base AS runner
+WORKDIR /app
+ENV NODE_ENV production
+ENV NEXT_TELEMETRY_DISABLED 1
+
+COPY --from=builder /app/public ./public
+COPY --from=builder /app/.next/standalone ./
+COPY --from=builder /app/.next/static ./.next/static
+
 EXPOSE 3000
+ENV PORT 3000
+CMD ["node", "server.js"]
 
-# Start application
-# - Generate Prisma client sesuai arsitektur Linux
-# - Build Next.js
-# - Start production server
-CMD npx prisma generate && npm run build && npm start
-
-# Base image
+# # Base image
 # FROM node:22-bullseye
 
+# # Set working directory
 # WORKDIR /app
 
+# # Environment variable
+# # Supaya Puppeteer tidak download Chromium sendiri
 # ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
-# ENV NODE_ENV=production
 
-# # Install system deps + Chrome
+# # Install system dependencies + Google Chrome
 # RUN apt-get update && apt-get install -y \
 #     curl \
 #     gnupg \
@@ -63,19 +55,58 @@ CMD npx prisma generate && npm run build && npm start
 # # Copy dependency files
 # COPY package*.json ./
 
-# # Install dependencies (production only)
+# # Install Node.js dependencies
 # RUN npm install
 
-# # Copy source
+# # Copy all source files
 # COPY . .
 
-# # Generate Prisma Client (LINUX)
-# RUN npx prisma generate
-
-# Build Next.js (ONCE, SAAT BUILD IMAGE)
-# RUN npm run build
-
+# # Expose application port
 # EXPOSE 3000
 
-# # 🚀 START ONLY (NO BUILD, NO MIGRATE)
-# CMD ["npm", "start"]
+# # Start application
+# # - Generate Prisma client sesuai arsitektur Linux
+# # - Build Next.js
+# # - Start production server
+# CMD npx prisma generate && npm run build && npm start
+
+# # Base image
+# # FROM node:22-bullseye
+
+# # WORKDIR /app
+
+# # ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
+# # ENV NODE_ENV=production
+
+# # # Install system deps + Chrome
+# # RUN apt-get update && apt-get install -y \
+# #     curl \
+# #     gnupg \
+# #     ca-certificates \
+# #     --no-install-recommends \
+# #   && curl -fsSL https://dl.google.com/linux/linux_signing_key.pub | gpg --dearmor -o /usr/share/keyrings/google-linux-keyring.gpg \
+# #   && echo "deb [arch=amd64 signed-by=/usr/share/keyrings/google-linux-keyring.gpg] http://dl.google.com/linux/chrome/deb/ stable main" \
+# #      > /etc/apt/sources.list.d/google-chrome.list \
+# #   && apt-get update \
+# #   && apt-get install -y google-chrome-stable --no-install-recommends \
+# #   && rm -rf /var/lib/apt/lists/*
+
+# # # Copy dependency files
+# # COPY package*.json ./
+
+# # # Install dependencies (production only)
+# # RUN npm install
+
+# # # Copy source
+# # COPY . .
+
+# # # Generate Prisma Client (LINUX)
+# # RUN npx prisma generate
+
+# # Build Next.js (ONCE, SAAT BUILD IMAGE)
+# # RUN npm run build
+
+# # EXPOSE 3000
+
+# # # 🚀 START ONLY (NO BUILD, NO MIGRATE)
+# # CMD ["npm", "start"]

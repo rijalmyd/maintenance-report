@@ -1,43 +1,73 @@
-name: CI CD Next.js Docker
+name: Deploy NextJS to VPS
 
 on:
   push:
-    branches: ["main"]
+    branches: [ main ]
 
 jobs:
-  build-and-push:
+  deploy:
     runs-on: ubuntu-latest
-
-    permissions:
-      contents: read
-      packages: write
-
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-        #  github registry login
-      - name: Log in to GitHub Container Registry
-        uses: docker/login-action@v3
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@master
         with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Build Docker image
-        run: |
-          docker build -t ghcr.io/${{ github.repository }}:latest .
-
-      # Build and push the Docker image
-      - name: Push Docker image
-        run: |
-          docker push ghcr.io/${{ github.repository }}:latest
-
-      - name: Deploy to VPS via SSH
-        uses: appleboy/ssh-action@v1
-        with:
-          host: ${{ secrets.VPS_HOST }}
-          username: ${{ secrets.VPS_USER }}
-          key: ${{ secrets.VPS_SSH_KEY }}
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.SSH_KEY }}
           script: |
-            sudo /root/deploy.sh
+            cd /var/www/my-app
+            # Buat folder upload jika belum ada agar docker tidak buat folder sebagai root
+            mkdir -p storage/uploads
+            git pull origin main
+            # Inject secret environment jika diperlukan
+            echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" > .env
+            docker-compose up -d --build
+            # Bersihkan image lama yang tidak terpakai
+            docker image prune -f
+
+# name: CI CD Next.js Docker
+
+# on:
+#   push:
+#     branches: ["main"]
+
+# jobs:
+#   build-and-push:
+#     runs-on: ubuntu-latest
+
+#     permissions:
+#       contents: read
+#       packages: write
+
+#     steps:
+#       - name: Checkout
+#         uses: actions/checkout@v4
+
+#         #  github registry login
+#       - name: Log in to GitHub Container Registry
+#         uses: docker/login-action@v3
+#         with:
+#           registry: ghcr.io
+#           username: ${{ github.actor }}
+#           password: ${{ secrets.GITHUB_TOKEN }}
+
+#       - name: Build Docker image
+#         run: |
+#           docker build -t ghcr.io/${{ github.repository }}:latest .
+
+#       # Build and push the Docker image
+#       - name: Push Docker image
+#         run: |
+#           docker push ghcr.io/${{ github.repository }}:latest
+
+#       - name: Deploy to VPS via SSH
+#         uses: appleboy/ssh-action@v1
+#         with:
+#           host: ${{ secrets.VPS_HOST }}
+#           username: ${{ secrets.VPS_USER }}
+#           key: ${{ secrets.VPS_SSH_KEY }}
+#           script: |
+#             sudo /root/deploy.sh
