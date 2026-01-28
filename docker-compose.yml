@@ -10,6 +10,7 @@ services:
     environment:
       DATABASE_URL: mysql://appuser:apppass@mysql:3306/appdb
       JWT_SECRET: ${JWT_SECRET}
+      BASE_URL: https://panel.aaubengkel.com
       # Lokasi chrome default di image resmi puppeteer
       # PUPPETEER_EXECUTABLE_PATH: /usr/bin/google-chrome-stable
     volumes:
