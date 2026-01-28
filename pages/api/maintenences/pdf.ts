@@ -7,6 +7,13 @@ import { generateEquipmentHTML } from "@/lib/pdfGenerator";
 import { fail } from "@/lib/apiResponse";
 import jwt from "jsonwebtoken";
 
+export const config = {
+  api: {
+    responseLimit: false, // MATIKAN LIMIT 4MB
+    bodyParser: false,    // Opsional, biar hemat memori saat upload/download
+  },
+};
+
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   let browser: Browser | null = null;
   try {
@@ -120,6 +127,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     await page.close();
 
     res.setHeader("Content-Type", "application/pdf");
+    res.setHeader("Content-Length", pdfBuffer.length);
     res.setHeader(
       "Content-Disposition",
       `attachment; filename="Laporan-${getMaintenance.id}.pdf"`
