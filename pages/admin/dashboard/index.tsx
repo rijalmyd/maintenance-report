@@ -145,7 +145,7 @@ const DashboardPage: React.FC = () => {
                 <div className="flex items-center justify-between">
                   <CardTitle className="text-sm font-bold text-red-700 flex items-center gap-2">
                     <AlertTriangle className="w-4 h-4 animate-pulse" />
-                    Sudah Jatuh Tempo
+                    Reminder Sudah Jatuh Tempo
                   </CardTitle>
                   <span className="bg-red-600 text-white text-[10px] px-2 py-0.5 rounded-full font-bold">
                     {overdueList.length} ITEM

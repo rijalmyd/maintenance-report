@@ -1,13 +1,14 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import prisma from "@/lib/prisma";
-import puppeteer from "puppeteer";
+import puppeteer, { Browser } from "puppeteer";
 import { generateVehicleHTML } from "@/lib/pdfGenerator";
 import { generateChassisHTML } from "@/lib/pdfGenerator";
-import { generateEquipmentHTML } from "@/lib/pdfGenerator"; 
+import { generateEquipmentHTML } from "@/lib/pdfGenerator";
 import { fail } from "@/lib/apiResponse";
 import jwt from "jsonwebtoken";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  let browser: Browser | null = null;
   try {
     const id = req.query.id as string;
     if (!id) return res.status(400).json({ error: "id is required" });
@@ -19,9 +20,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         asset: { include: { chassis: true, equipment: true, vehicle: true } },
         driver: true,
         spareparts: {
-            include: {
-                sparepart: true,
-            },
+          include: {
+            sparepart: true,
+          },
         },
         user: true, // Asumsi user ini yang melakukan/approve
       },
@@ -29,7 +30,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const authHeader = req.headers.authorization;
     if (!authHeader?.startsWith("Bearer "))
-        return res.status(401).json(fail("unauthorized"));
+      return res.status(401).json(fail("unauthorized"));
     const token = authHeader.split(" ")[1];
     const decoded = jwt.verify(token, process.env.JWT_SECRET!) as {
       id: string;
@@ -49,22 +50,22 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       images: getMaintenance?.images.map((pivot) => pivot.image) ?? [],
     };
 
-   let html = "";
+    let html = "";
 
     switch (result.asset?.asset_type) {
-    case "VEHICLE":
+      case "VEHICLE":
         html = generateVehicleHTML(result);
         break;
 
-    case "CHASSIS":
+      case "CHASSIS":
         html = generateChassisHTML(result);
         break;
 
-    case "EQUIPMENT":
+      case "EQUIPMENT":
         html = generateEquipmentHTML(result);
         break;
 
-    default:
+      default:
         html = "<h1>Type asset not supported</h1>";
     }
 
@@ -73,19 +74,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     //   // disable if running locally
     //   args: ["--no-sandbox", "--disable-setuid-sandbox"],
     // });
-    const browser = await puppeteer.launch({
+    browser = await puppeteer.launch({
+      headless: true,
       args: [
         "--no-sandbox",
         "--disable-setuid-sandbox",
         "--disable-dev-shm-usage",
-        "--disable-gpu",
+        "--single-process",
       ],
     });
 
     const page = await browser.newPage();
     page.setDefaultTimeout(120_000);
     page.setDefaultNavigationTimeout(120_000);
-    
+
     // Set viewport untuk memastikan render CSS akurat
     await page.setViewport({ width: 794, height: 1123 }); // Ukuran A4 dalam px (96dpi)
 
@@ -113,8 +115,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         right: "10mm",
       },
     });
-
-    await browser.close();
+    
+    await page.close();
 
     res.setHeader("Content-Type", "application/pdf");
     res.setHeader(
@@ -126,5 +128,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   } catch (error: any) {
     console.log(error);
     return res.status(500).json({ error: error.message });
+  } finally {
+    if (browser) {
+      await browser.close();
+    }
   }
 }
