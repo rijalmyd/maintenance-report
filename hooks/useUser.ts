@@ -95,3 +95,18 @@ export const useDeleteUser = (userId: string) => {
     },
   });
 };
+
+// logout user
+export const useLogout = () => {
+  const router = useRouter();
+  const queryClient = useQueryClient();
+
+  return () => {
+    localStorage.removeItem("token");
+
+    queryClient.removeQueries({ queryKey: ["me"] });
+
+    toast.success("Logout berhasil");
+    router.replace("/login");
+  };
+};
