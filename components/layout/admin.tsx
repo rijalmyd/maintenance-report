@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { useAuthGuard } from "@/hooks/useAuthGuard";
+import { useLogout } from "@/hooks/useUser";
 import {
   Bell,
   CarTaxiFront,
@@ -66,6 +67,7 @@ const AdminLayout: React.FC<{
   ];
 
   const { user, isLoading } = useAuthGuard();
+  const logout = useLogout();
 
   return (
     <div className="min-h-screen bg-linear-to-br from-gray-50 to-gray-100">
@@ -101,15 +103,15 @@ const AdminLayout: React.FC<{
             {/* Right Actions */}
             <div className="flex items-center gap-2">
               {/* Search Button */}
-              <Button variant="ghost" size="icon" className="hidden sm:flex">
+              {/* <Button variant="ghost" size="icon" className="hidden sm:flex">
                 <Search className="w-5 h-5" />
-              </Button>
+              </Button> */}
 
               {/* Notifications */}
-              <Button variant="ghost" size="icon" className="relative">
+              {/* <Button variant="ghost" size="icon" className="relative">
                 <Bell className="w-5 h-5" />
                 <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full ring-2 ring-white"></span>
-              </Button>
+              </Button> */}
 
               {/* Profile Dropdown */}
               <div className="relative">
@@ -128,20 +130,22 @@ const AdminLayout: React.FC<{
 
                 {profileOpen && (
                   <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1">
-                    <button className="flex items-center gap-3 px-4 py-2 w-full hover:bg-gray-50 text-sm">
+                    {/* <button className="flex items-center gap-3 px-4 py-2 w-full hover:bg-gray-50 text-sm">
                       <User className="w-4 h-4" />
                       <span>Profile</span>
                     </button>
                     <button className="flex items-center gap-3 px-4 py-2 w-full hover:bg-gray-50 text-sm">
-                      <CreditCard className="w-4 h-4" />
-                      <span>Billing</span>
-                    </button>
-                    <button className="flex items-center gap-3 px-4 py-2 w-full hover:bg-gray-50 text-sm">
                       <Settings className="w-4 h-4" />
                       <span>Settings</span>
-                    </button>
+                    </button> */}
                     <div className="border-t border-gray-200 my-1"></div>
-                    <button className="flex items-center gap-3 px-4 py-2 w-full hover:bg-gray-50 text-sm text-red-600">
+                    <button
+                      onClick={() => {
+                        logout();
+                        setProfileOpen(false);
+                      }}
+                      className="flex items-center gap-3 px-4 py-2 w-full hover:bg-gray-50 text-sm text-red-600"
+                    >
                       <LogOut className="w-4 h-4" />
                       <span>Logout</span>
                     </button>
@@ -161,11 +165,10 @@ const AdminLayout: React.FC<{
                 asChild
                 variant="ghost"
                 key={item.id}
-                className={`flex items-center hover:bg-primary hover:text-white gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
-                  pathname === item.to
+                className={`flex items-center hover:bg-primary hover:text-white gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all ${pathname === item.to
                     ? "bg-primary text-white shadow-sm"
                     : "text-gray-600 hover:bg-white hover:text-gray-900"
-                }`}
+                  }`}
               >
                 <Link href={item.to}>
                   <Icon className="w-4 h-4" />
@@ -190,11 +193,10 @@ const AdminLayout: React.FC<{
                     onClick={() => {
                       setMobileMenuOpen(false);
                     }}
-                    className={`flex justify-start items-center gap-3 w-full px-4 py-3 rounded-lg text-sm font-normal transition-all ${
-                      pathname === item.to
+                    className={`flex justify-start items-center gap-3 w-full px-4 py-3 rounded-lg text-sm font-normal transition-all ${pathname === item.to
                         ? "bg-blue-50 text-primary"
                         : "text-gray-600 hover:bg-gray-100"
-                    }`}
+                      }`}
                   >
                     <Link href={item.to}>
                       <Icon className="w-4 h-4" />
