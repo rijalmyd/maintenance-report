@@ -92,15 +92,21 @@ const AdminLayout: React.FC<{
               <div className="flex items-center gap-3">
                 <div className="relative w-10 h-10 flex-shrink-0">
                   <Image
-                      src="https://www.pt-aau.com/wp-content/uploads/2025/05/logo-circle.png"
-                      alt="Logo PT. AAU"
-                      fill
-                      className="object-contain"
-                      priority // Menambahkan priority karena ini adalah elemen LCP (di atas lipatan)
-                    />
+                    src="https://www.pt-aau.com/wp-content/uploads/2025/05/logo-circle.png"
+                    alt="Logo PT. AAU"
+                    fill
+                    className="object-contain"
+                    priority // Menambahkan priority karena ini adalah elemen LCP (di atas lipatan)
+                  />
                 </div>
-                <h1 className="text-xl font-bold bg-black bg-clip-text text-transparent">
-                  PT. ADITYA ANDHIKA UTAMA Report
+                <h1 className="font-bold text-gray-900 leading-tight">
+                  <span className="hidden sm:inline">
+                    PT. ADITYA ANDHIKA UTAMA Report
+                  </span>
+
+                  <span className="sm:hidden">
+                    PT. AAU
+                  </span>
                 </h1>
               </div>
             </div>
