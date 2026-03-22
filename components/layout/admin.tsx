@@ -19,6 +19,7 @@ import {
   Wrench,
   X,
 } from "lucide-react";
+import Image from 'next/image.js';
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import React, { useState } from "react";
@@ -88,14 +89,18 @@ const AdminLayout: React.FC<{
                   <Menu className="w-6 h-6" />
                 )}
               </button>
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-                  <span className="text-white font-bold text-sm">
-                    <Drill size={17} />
-                  </span>
+              <div className="flex items-center gap-3">
+                <div className="relative w-10 h-10 flex-shrink-0">
+                  <Image
+                      src="https://www.pt-aau.com/wp-content/uploads/2025/05/logo-circle.png"
+                      alt="Logo PT. AAU"
+                      fill
+                      className="object-contain"
+                      priority // Menambahkan priority karena ini adalah elemen LCP (di atas lipatan)
+                    />
                 </div>
-                <h1 className="text-xl font-bold bg-primary bg-clip-text text-transparent">
-                  Maintence Report
+                <h1 className="text-xl font-bold bg-black bg-clip-text text-transparent">
+                  PT. ADITYA ANDHIKA UTAMA Report
                 </h1>
               </div>
             </div>
@@ -166,8 +171,8 @@ const AdminLayout: React.FC<{
                 variant="ghost"
                 key={item.id}
                 className={`flex items-center hover:bg-primary hover:text-white gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all ${pathname === item.to
-                    ? "bg-primary text-white shadow-sm"
-                    : "text-gray-600 hover:bg-white hover:text-gray-900"
+                  ? "bg-primary text-white shadow-sm"
+                  : "text-gray-600 hover:bg-white hover:text-gray-900"
                   }`}
               >
                 <Link href={item.to}>
@@ -194,8 +199,8 @@ const AdminLayout: React.FC<{
                       setMobileMenuOpen(false);
                     }}
                     className={`flex justify-start items-center gap-3 w-full px-4 py-3 rounded-lg text-sm font-normal transition-all ${pathname === item.to
-                        ? "bg-blue-50 text-primary"
-                        : "text-gray-600 hover:bg-gray-100"
+                      ? "bg-blue-50 text-primary"
+                      : "text-gray-600 hover:bg-gray-100"
                       }`}
                   >
                     <Link href={item.to}>
