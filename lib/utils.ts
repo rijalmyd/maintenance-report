@@ -1,6 +1,9 @@
 import axios from "axios";
 import { clsx, type ClassValue } from "clsx"
+import { fetchExternalImage } from 'next/dist/server/image-optimizer.js';
+import { StaticImageData } from 'next/image.js';
 import { twMerge } from "tailwind-merge"
+import { base64 } from 'zod';
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -43,6 +46,13 @@ export async function imageUrlToBase64(url: string) {
   return `data:${contentType};base64,${base64}`;
 }
 
+export async function imageToBase64(image: StaticImageData) {
+  const response = await fetch(image.src);
+  const arrayBuffer = await response.arrayBuffer();
+  const base64 = Buffer.from(arrayBuffer).toString('base64');
+  
+  return `data:image/png;base64,${base64}`;
+}
 
 // utils/assetExcelMapper.ts
 export const HEADER_MAP_CHASSIS: Record<string, string> = {

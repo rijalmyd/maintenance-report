@@ -61,15 +61,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     switch (result.asset?.asset_type) {
       case "VEHICLE":
-        html = generateVehicleHTML(result);
+        html = await generateVehicleHTML(result);
         break;
 
       case "CHASSIS":
-        html = generateChassisHTML(result);
+        html = await generateChassisHTML(result);
         break;
 
       case "EQUIPMENT":
-        html = generateEquipmentHTML(result);
+        html = await generateEquipmentHTML(result);
         break;
 
       default:
@@ -83,7 +83,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // });
     browser = await puppeteer.launch({
       headless: true,
-      executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || '/usr/bin/google-chrome-stable',
+      // executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || '/usr/bin/google-chrome-stable',
       args: [
         "--no-sandbox",
         "--disable-setuid-sandbox",

@@ -1,4 +1,5 @@
 import { formatDateID } from "./formatDate";
+import { getSignatureByUsername } from './imageSignature';
 
 export function generateVehicleHTML(data: any) {
   // Format Tanggal Indonesia (misal: RABU, 29 OKTOBER 2025)
@@ -41,15 +42,15 @@ export function generateVehicleHTML(data: any) {
 
   const sparepartsHTML = data.spareparts.length
     ? data.spareparts
-        .map((item: any) => {
-          return `
+      .map((item: any) => {
+        return `
           <div>
             ${item.sparepart.code} - ${item.sparepart.name}
             (${item.total} ${item.sparepart.unit})
           </div>
         `;
-        })
-        .join("")
+      })
+      .join("")
     : "<div>Tidak ada sparepart</div>";
 
   const galleryImages = data.images.slice(0, 3);
@@ -223,6 +224,13 @@ export function generateVehicleHTML(data: any) {
           text-align: center;
           vertical-align: bottom;
         }
+        
+        .signature-box img {
+           display: block;
+           margin: 0 auto 5px auto;
+           max-height: 60px; /* Batasi tinggi TTD agar tidak merusak layout */
+           width: auto;
+         }
         
         .footer-image-frame {
            border: 4px solid #FFD700;
@@ -470,20 +478,19 @@ export function generateVehicleHTML(data: any) {
 
           <div class="gallery-container">
             ${galleryImages
-              .map(
-                (img: any) => `
+      .map(
+        (img: any) => `
               <div class="photo-frame">
                 <img src="${img.url}" />
               </div>
             `
-              )
-              .join("")}
+      )
+      .join("")}
 
-            ${
-              galleryImages.length === 0
-                ? '<div style="padding:20px; text-align:center;">Tidak ada dokumentasi foto</div>'
-                : ""
-            }
+            ${galleryImages.length === 0
+      ? '<div style="padding:20px; text-align:center;">Tidak ada dokumentasi foto</div>'
+      : ""
+    }
           </div>
         </div>
 
@@ -514,19 +521,18 @@ export function generateVehicleHTML(data: any) {
             <tbody>
               <tr>
                 <td class="signature-box">
-                  <br><br><br>
-                  <span class="bold" style="text-decoration: underline;">${
-                    data.done_by
-                  }</span><br>
+                  <img src="${getSignatureByUsername(data.done_by)}"/>
+                  <span class="bold" style="text-decoration: underline;">${data.done_by
+    }</span><br>
                   (Mekanik)
                 </td>
                 <td class="signature-box">
-                   <br><br><br>
+                  <img src="${getSignatureByUsername(data.user?.fullname)}"/>
                   <span class="bold" style="text-decoration: underline;">${data.user?.fullname}</span><br>
                   (${data.user?.role})
                 </td>
                 <td class="signature-box">
-                   <br><br><br>
+                  <img src="${getSignatureByUsername('aditya')}"/>
                   <span class="bold" style="text-decoration: underline;">Aditya Putra</span><br>
                   (Direktur & Koordinator safety)
                 </td>
@@ -535,15 +541,14 @@ export function generateVehicleHTML(data: any) {
           </table>
         </div>
 
-        ${
-          footerImage
-            ? `
+        ${footerImage
+      ? `
         <div class="footer-image-frame">
           <img src="${footerImage}" />
         </div>
         `
-            : ""
-        }
+      : ""
+    }
 
       </div>
 
@@ -583,15 +588,15 @@ export function generateChassisHTML(data: any) {
 
   const sparepartsHTML = data.spareparts.length
     ? data.spareparts
-        .map((item: any) => {
-          return `
+      .map((item: any) => {
+        return `
           <div>
             ${item.sparepart.code} - ${item.sparepart.name}
             (${item.total} ${item.sparepart.unit})
           </div>
         `;
-        })
-        .join("")
+      })
+      .join("")
     : "<div>Tidak ada sparepart</div>";
 
   const galleryImages = data.images.slice(0, 3);
@@ -752,6 +757,13 @@ export function generateChassisHTML(data: any) {
           text-align: center;
           vertical-align: bottom;
         }
+        
+        .signature-box img {
+           display: block;
+           margin: 0 auto 5px auto;
+           max-height: 60px; /* Batasi tinggi TTD agar tidak merusak layout */
+           width: auto;
+         }
         
         .footer-image-frame {
            border: 4px solid #FFD700;
@@ -998,17 +1010,18 @@ export function generateChassisHTML(data: any) {
             <tbody>
               <tr>
                 <td class="signature-box">
-                  <br><br><br>
-                  <span class="bold" style="text-decoration: underline;">${data.done_by}</span><br>
+                  <img src="${getSignatureByUsername(data.done_by)}"/>
+                  <span class="bold" style="text-decoration: underline;">${data.done_by
+    }</span><br>
                   (Mekanik)
                 </td>
                 <td class="signature-box">
-                   <br><br><br>
+                  <img src="${getSignatureByUsername(data.user?.fullname)}"/>
                   <span class="bold" style="text-decoration: underline;">${data.user?.fullname}</span><br>
                   (${data.user?.role})
                 </td>
                 <td class="signature-box">
-                   <br><br><br>
+                  <img src="${getSignatureByUsername('aditya')}"/>
                   <span class="bold" style="text-decoration: underline;">Aditya Putra</span><br>
                   (Direktur & Koordinator safety)
                 </td>
@@ -1049,15 +1062,15 @@ export function generateEquipmentHTML(data: any) {
 
   const sparepartsHTML = data.spareparts.length
     ? data.spareparts
-        .map((item: any) => {
-          return `
+      .map((item: any) => {
+        return `
           <div>
             ${item.sparepart.code} - ${item.sparepart.name}
             (${item.total} ${item.sparepart.unit})
           </div>
         `;
-        })
-        .join("")
+      })
+      .join("")
     : "<div>Tidak ada sparepart</div>";
 
   const galleryImages = data.images.slice(0, 3);
@@ -1216,6 +1229,13 @@ export function generateEquipmentHTML(data: any) {
           height: 80px;
           text-align: center;
           vertical-align: bottom;
+        }
+
+        .signature-box img {
+           display: block;
+           margin: 0 auto 5px auto;
+           max-height: 60px; /* Batasi tinggi TTD agar tidak merusak layout */
+           width: auto;
         }
         
         .footer-image-frame {
@@ -1448,17 +1468,18 @@ export function generateEquipmentHTML(data: any) {
             <tbody>
               <tr>
                 <td class="signature-box">
-                  <br><br><br>
-                  <span class="bold" style="text-decoration: underline;">${data.done_by}</span><br>
+                  <img src="${getSignatureByUsername(data.done_by)}"/>
+                  <span class="bold" style="text-decoration: underline;">${data.done_by
+    }</span><br>
                   (Mekanik)
                 </td>
                 <td class="signature-box">
-                   <br><br><br>
+                  <img src="${getSignatureByUsername(data.user?.fullname)}"/>
                   <span class="bold" style="text-decoration: underline;">${data.user?.fullname}</span><br>
                   (${data.user?.role})
                 </td>
                 <td class="signature-box">
-                   <br><br><br>
+                  <img src="${getSignatureByUsername('aditya')}"/>
                   <span class="bold" style="text-decoration: underline;">Aditya Putra</span><br>
                   (Direktur & Koordinator safety)
                 </td>
