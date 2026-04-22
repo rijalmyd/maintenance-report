@@ -189,7 +189,7 @@ const AssetHistoryCard = () => {
                     </p>
                   </div>
 
-                  <DownloadMaintenancePDF maintenanceId={log.id} />
+                  <DownloadMaintenancePDF maintenanceId={log.id} recordNumber={log.record_number} />
                 </div>
               ))
             ) : (
