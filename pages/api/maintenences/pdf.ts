@@ -130,7 +130,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     res.setHeader("Content-Length", pdfBuffer.length);
     res.setHeader(
       "Content-Disposition",
-      `attachment; filename="Laporan-${getMaintenance.id}.pdf"`
+      `attachment; filename="${result.record_number}.pdf"`
     );
 
     return res.end(pdfBuffer);
