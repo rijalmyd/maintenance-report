@@ -122,7 +122,7 @@ export const columns: ColumnDef<Maintenence>[] = [
       const maintenance = row.original;
       return (
         <div className="flex justify-end gap-2">
-          <DownloadMaintenancePDF maintenanceId={maintenance.id} />
+          <DownloadMaintenancePDF maintenanceId={maintenance.id} recordNumber={maintenance.record_number} />
           <DeleteMaintenance maintenanceId={maintenance.id} />
         </div>
       );
@@ -307,8 +307,10 @@ const DeleteMaintenance = ({ maintenanceId }: { maintenanceId: string }) => {
 // add authorization header to fetch request and open in new browser tab
 export const DownloadMaintenancePDF = ({
   maintenanceId,
+  recordNumber,
 }: {
   maintenanceId: string;
+  recordNumber: string;
 }) => {
   const [loading, setLoading] = React.useState(false);
 
@@ -337,7 +339,7 @@ export const DownloadMaintenancePDF = ({
 
       const link = document.createElement("a");
       link.href = url;
-      link.download = `maintenance_${maintenanceId}.pdf`;
+      link.download = `${recordNumber}.pdf`;
       document.body.appendChild(link);
       link.click();
       link.remove();
